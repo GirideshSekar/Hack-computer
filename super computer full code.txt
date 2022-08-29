@@ -1,0 +1,479 @@
+CHIP Xor {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Not(in=a, out=aNot);
+    And(a=b, b=aNot, out=tmp2);
+    Or(a=tmp1, b=tmp2, out=out);
+}
+
+
+CHIP Or {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Not(in=a, out=aNot);
+    Not(in=b, out=bNot);
+    Nand(a=aNot, b=bNot, out=out);
+}
+
+
+CHIP Or8Way {
+    IN in[8];
+    OUT out;
+
+    PARTS:
+    Or(a=in[0], b=in[1], out=tmp01);
+    Or(a=in[2], b=in[3], out=tmp23);
+    Or(a=in[4], b=in[5], out=tmp45);
+    Or(a=in[6], b=in[7], out=tmp67);
+    Or(a=tmp01, b=tmp23, out=tmp03);
+    Or(a=tmp45, b=tmp67, out=tmp47);
+    Or(a=tmp03, b=tmp47, out=out);
+}
+
+CHIP Or16 {
+    IN a[16], b[16];
+    OUT out[16];
+
+    PARTS:
+    Or(a=a[0], b=b[0], out=out[0]);
+    Or(a=a[1], b=b[1], out=out[1]);
+    Or(a=a[2], b=b[2], out=out[2]);
+    Or(a=a[3], b=b[3], out=out[3]);
+    Or(a=a[4], b=b[4], out=out[4]);
+    Or(a=a[5], b=b[5], out=out[5]);
+    Or(a=a[6], b=b[6], out=out[6]);
+    Or(a=a[7], b=b[7], out=out[7]);
+    Or(a=a[8], b=b[8], out=out[8]);
+    Or(a=a[9], b=b[9], out=out[9]);
+    Or(a=a[10], b=b[10], out=out[10]);
+    Or(a=a[11], b=b[11], out=out[11]);
+    Or(a=a[12], b=b[12], out=out[12]);
+    Or(a=a[13], b=b[13], out=out[13]);
+    Or(a=a[14], b=b[14], out=out[14]);
+    Or(a=a[15], b=b[15], out=out[15]);
+}
+
+CHIP Not {
+    IN in;
+    OUT out;
+
+    PARTS:
+    Nand(a=in, b=in, out=out);
+}
+
+CHIP Not16 {
+    IN in[16];
+    OUT out[16];
+
+    PARTS:
+    Not(in=in[0], out=out[0]);
+    Not(in=in[1], out=out[1]);
+    Not(in=in[2], out=out[2]);
+    Not(in=in[3], out=out[3]);
+    Not(in=in[4], out=out[4]);
+    Not(in=in[5], out=out[5]);
+    Not(in=in[6], out=out[6]);
+    Not(in=in[7], out=out[7]);
+    Not(in=in[8], out=out[8]);
+    Not(in=in[9], out=out[9]);
+    Not(in=in[10], out=out[10]);
+    Not(in=in[11], out=out[11]);
+    Not(in=in[12], out=out[12]);
+    Not(in=in[13], out=out[13]);
+    Not(in=in[14], out=out[14]);
+    Not(in=in[15], out=out[15]);
+}
+
+CHIP Mux {
+    IN a, b, sel;
+    OUT out;
+
+    PARTS:
+    Not(in=sel, out=selNot);
+    And(a=a, b=selNot, out=aOut);
+    And(a=b, b=sel, out=bOut);
+    Or(a=aOut, b=bOut, out=out);
+}
+
+CHIP Mux4Way16 {
+    IN a[16], b[16], c[16], d[16], sel[2];
+    OUT out[16];
+
+    PARTS:
+    Mux16(a=a, b=b, sel=sel[0], out=muxAB);
+    Mux16(a=c, b=d, sel=sel[0], out=muxCD);
+    Mux16(a=muxAB, b=muxCD, sel=sel[1], out=out);
+}
+
+CHIP Mux8Way16 {
+    IN a[16], b[16], c[16], d[16],
+       e[16], f[16], g[16], h[16],
+       sel[3];
+    OUT out[16];
+
+    PARTS:
+    Mux4Way16(a=a, b=b, c=c, d=d, sel=sel[0..1], out=muxABCD);
+    Mux4Way16(a=e, b=f, c=g, d=h, sel=sel[0..1], out=muxEFGH);
+    Mux16(a=muxABCD, b=muxEFGH, sel=sel[2], out=out);
+}
+
+CHIP DMux8Way {
+    IN in, sel[3];
+    OUT a, b, c, d, e, f, g, h;
+
+    PARTS:
+    DMux(in=in, sel=sel[2], a=outABCD, b=outEFGH);
+    DMux4Way(in=outABCD, sel=sel[0..1], a=a, b=b, c=c, d=d);
+    DMux4Way(in=outEFGH, sel=sel[0..1], a=e, b=f, c=g, d=h);
+}
+
+CHIP DMux4Way {
+    IN in, sel[2];
+    OUT a, b, c, d;
+
+    PARTS:
+    DMux(in=in, sel=sel[1], a=outAB, b=outCD);
+    DMux(in=outAB, sel=sel[0], a=a, b=b);
+    DMux(in=outCD, sel=sel[0], a=c, b=d);
+}
+
+CHIP DMux {
+    IN in, sel;
+    OUT a, b;
+
+    PARTS:
+    Not(in=sel, out=selNot);
+    And(a=in, b=selNot, out=a);
+    And(a=in, b=sel, out=b);
+}
+
+CHIP And {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Nand(a=a, b=b, out=tmp);
+    Not(in=tmp, out=out);
+}
+
+CHIP And16 {
+    IN a[16], b[16];
+    OUT out[16];
+
+    PARTS:
+    And(a=a[0], b=b[0], out=out[0]);
+    And(a=a[1], b=b[1], out=out[1]);
+    And(a=a[2], b=b[2], out=out[2]);
+    And(a=a[3], b=b[3], out=out[3]);
+    And(a=a[4], b=b[4], out=out[4]);
+    And(a=a[5], b=b[5], out=out[5]);
+    And(a=a[6], b=b[6], out=out[6]);
+    And(a=a[7], b=b[7], out=out[7]);
+    And(a=a[8], b=b[8], out=out[8]);
+    And(a=a[9], b=b[9], out=out[9]);
+    And(a=a[10], b=b[10], out=out[10]);
+    And(a=a[11], b=b[11], out=out[11]);
+    And(a=a[12], b=b[12], out=out[12]);
+    And(a=a[13], b=b[13], out=out[13]);
+    And(a=a[14], b=b[14], out=out[14]);
+    And(a=a[15], b=b[15], out=out[15]);
+}
+
+CHIP HalfAdder {
+    IN a, b; 
+    OUT sum,carry; 
+
+    PARTS:
+    Xor(a=a, b=b, out=sum);
+    And(a=a, b=b, out=carry);
+}
+
+CHIP FullAdder {
+    IN a, b, c;  
+    OUT sum,     
+        carry;   
+
+    PARTS:
+    HalfAdder(a=a, b=b, sum=sumAB, carry=carryAB);
+    HalfAdder(a=sumAB, b=c, sum=sum, carry=carryABC);
+    Or(a=carryAB, b=carryABC, out=carry);
+}
+
+CHIP Inc16 {
+    IN in[16];
+    OUT out[16];
+
+    PARTS:
+   Add16(a=in, b[0]=true, out=out);
+}
+
+CHIP Add16 {
+    IN a[16], b[16];
+    OUT out[16];
+
+    PARTS:
+   FullAdder(a=a[0], b=b[0], c=false, sum=out[0], carry=carry0);
+   FullAdder(a=a[1], b=b[1], c=carry0, sum=out[1], carry=carry1);
+   FullAdder(a=a[2], b=b[2], c=carry1, sum=out[2], carry=carry2);
+   FullAdder(a=a[3], b=b[3], c=carry2, sum=out[3], carry=carry3);
+   FullAdder(a=a[4], b=b[4], c=carry3, sum=out[4], carry=carry4);
+   FullAdder(a=a[5], b=b[5], c=carry4, sum=out[5], carry=carry5);
+   FullAdder(a=a[6], b=b[6], c=carry5, sum=out[6], carry=carry6);
+   FullAdder(a=a[7], b=b[7], c=carry6, sum=out[7], carry=carry7);
+   FullAdder(a=a[8], b=b[8], c=carry7, sum=out[8], carry=carry8);
+   FullAdder(a=a[9], b=b[9], c=carry8, sum=out[9], carry=carry9);
+   FullAdder(a=a[10], b=b[10], c=carry9, sum=out[10], carry=carry10);
+   FullAdder(a=a[11], b=b[11], c=carry10, sum=out[11], carry=carry11);
+   FullAdder(a=a[12], b=b[12], c=carry11, sum=out[12], carry=carry12);
+   FullAdder(a=a[13], b=b[13], c=carry12, sum=out[13], carry=carry13);
+   FullAdder(a=a[14], b=b[14], c=carry13, sum=out[14], carry=carry14);
+   FullAdder(a=a[15], b=b[15], c=carry14, sum=out[15], carry=carry15);
+}
+
+CHIP ALU {
+    IN  
+        x[16], y[16],  // 16-bit inputs        
+        zx, 
+        nx, 
+        zy,
+        ny, 
+        f,  
+        no; 
+
+    OUT 
+        out[16], 
+        zr, 
+        ng; 
+
+    PARTS:
+   Mux16(a=x, b=false, sel=zx, out=xZero);
+   Not16(in=xZero, out=xNot);
+   Mux16(a=xZero, b=xNot, sel=nx, out=xInput);
+   Mux16(a=y, b=false, sel=zy, out=yZero);
+   Not16(in=yZero, out=yNot);
+   Mux16(a=yZero, b=yNot, sel=ny, out=yInput);
+   And16(a=xInput, b=yInput, out=xANDy);
+   Add16(a=xInput, b=yInput, out=xADDy);
+   Mux16(a=xANDy, b=xADDy, sel=f, out=OutF);
+   Not16(in=OutF, out=NotOutF);
+   Mux16(a=OutF, b=NotOutF, sel=no, out=out, out[15]=ng, out[0..7]=LByte, out[8..15]=HByte);
+   Or8Way(in=LByte, out=LBit);
+   Or8Way(in=HByte, out=HBit);
+   Or(a=LBit, b=HBit, out=NotZero);
+   Not(in=NotZero, out=zr);
+}
+
+CHIP Bit {
+    IN in, load;
+    OUT out;
+
+    PARTS:
+    Mux(a=loop, b=in, sel=load, out=MuxOut);
+    DFF(in=MuxOut, out=out, out=loop);
+}
+
+CHIP Register {
+    IN in[16], load;
+    OUT out[16];
+
+    PARTS:
+    Bit(in=in[0], load=load, out=out[0]);
+    Bit(in=in[1], load=load, out=out[1]);
+    Bit(in=in[2], load=load, out=out[2]);
+    Bit(in=in[3], load=load, out=out[3]);
+    Bit(in=in[4], load=load, out=out[4]);
+    Bit(in=in[5], load=load, out=out[5]);
+    Bit(in=in[6], load=load, out=out[6]);
+    Bit(in=in[7], load=load, out=out[7]);
+    Bit(in=in[8], load=load, out=out[8]);
+    Bit(in=in[9], load=load, out=out[9]);
+    Bit(in=in[10], load=load, out=out[10]);
+    Bit(in=in[11], load=load, out=out[11]);
+    Bit(in=in[12], load=load, out=out[12]);
+    Bit(in=in[13], load=load, out=out[13]);
+    Bit(in=in[14], load=load, out=out[14]);
+    Bit(in=in[15], load=load, out=out[15]);
+}
+
+CHIP RAM8 {
+    IN in[16], load, address[3];
+    OUT out[16];
+
+    PARTS:
+    DMux8Way(in=load, sel=address, a=loadR0, b=loadR1, c=loadR2, d=loadR3, e=loadR4, f=loadR5, g=loadR6, h=loadR7)
+    Register(in=in, load=loadR0, out=R0);
+    Register(in=in, load=loadR1, out=R1);
+    Register(in=in, load=loadR2, out=R2);
+    Register(in=in, load=loadR3, out=R3);
+    Register(in=in, load=loadR4, out=R4);
+    Register(in=in, load=loadR5, out=R5);
+    Register(in=in, load=loadR6, out=R6);
+    Register(in=in, load=loadR7, out=R7);
+    Mux8Way16(a=R0, b=R1, c=R2, d=R3, e=R4, f=R5, g=R6, h=R7, sel=address, out=out);
+}
+
+CHIP RAM64 {
+    IN in[16], load, address[6];
+    OUT out[16];
+
+    PARTS:
+    DMux8Way(in=load, sel=address[3..5], a=loadRAM0, b=loadRAM1, c=loadRAM2, d=loadRAM3, e=loadRAM4, f=loadRAM5, g=loadRAM6, h=loadRAM7);
+    RAM8(in=in, load=loadRAM0, address=address[0..2], out=RAM0);
+    RAM8(in=in, load=loadRAM1, address=address[0..2], out=RAM1);
+    RAM8(in=in, load=loadRAM2, address=address[0..2], out=RAM2);
+    RAM8(in=in, load=loadRAM3, address=address[0..2], out=RAM3);
+    RAM8(in=in, load=loadRAM4, address=address[0..2], out=RAM4);
+    RAM8(in=in, load=loadRAM5, address=address[0..2], out=RAM5);
+    RAM8(in=in, load=loadRAM6, address=address[0..2], out=RAM6);
+    RAM8(in=in, load=loadRAM7, address=address[0..2], out=RAM7);
+    Mux8Way16(a=RAM0, b=RAM1, c=RAM2, d=RAM3, e=RAM4, f=RAM5, g=RAM6, h=RAM7, sel=address[3..5], out=out);
+}
+
+CHIP RAM512 {
+    IN in[16], load, address[9];
+    OUT out[16];
+
+    PARTS:
+    DMux8Way(in=load, sel=address[6..8], a=loadRAM0, b=loadRAM1, c=loadRAM2, d=loadRAM3, e=loadRAM4, f=loadRAM5, g=loadRAM6, h=loadRAM7);
+    RAM64(in=in, load=loadRAM0, address=address[0..5], out=RAM0);
+    RAM64(in=in, load=loadRAM1, address=address[0..5], out=RAM1);
+    RAM64(in=in, load=loadRAM2, address=address[0..5], out=RAM2);
+    RAM64(in=in, load=loadRAM3, address=address[0..5], out=RAM3);
+    RAM64(in=in, load=loadRAM4, address=address[0..5], out=RAM4);
+    RAM64(in=in, load=loadRAM5, address=address[0..5], out=RAM5);
+    RAM64(in=in, load=loadRAM6, address=address[0..5], out=RAM6);
+    RAM64(in=in, load=loadRAM7, address=address[0..5], out=RAM7);
+    Mux8Way16(a=RAM0, b=RAM1, c=RAM2, d=RAM3, e=RAM4, f=RAM5, g=RAM6, h=RAM7, sel=address[6..8], out=out);
+}
+
+CHIP RAM4K {
+    IN in[16], load, address[12];
+    OUT out[16];
+
+    PARTS:
+    DMux8Way(in=load, sel=address[9..11], a=loadRAM0, b=loadRAM1, c=loadRAM2, d=loadRAM3, e=loadRAM4, f=loadRAM5, g=loadRAM6, h=loadRAM7);
+    RAM512(in=in, load=loadRAM0, address=address[0..8], out=RAM0);
+    RAM512(in=in, load=loadRAM1, address=address[0..8], out=RAM1);
+    RAM512(in=in, load=loadRAM2, address=address[0..8], out=RAM2);
+    RAM512(in=in, load=loadRAM3, address=address[0..8], out=RAM3);
+    RAM512(in=in, load=loadRAM4, address=address[0..8], out=RAM4);
+    RAM512(in=in, load=loadRAM5, address=address[0..8], out=RAM5);
+    RAM512(in=in, load=loadRAM6, address=address[0..8], out=RAM6);
+    RAM512(in=in, load=loadRAM7, address=address[0..8], out=RAM7);
+    Mux8Way16(a=RAM0, b=RAM1, c=RAM2, d=RAM3, e=RAM4, f=RAM5, g=RAM6, h=RAM7, sel=address[9..11], out=out);
+}
+
+CHIP RAM16K {
+    IN in[16], load, address[14];
+    OUT out[16];
+
+    PARTS:
+    DMux4Way(in=load, sel=address[12..13], a=loadRAM0, b=loadRAM1, c=loadRAM2, d=loadRAM3);
+    RAM4K(in=in, load=loadRAM0, address=address[0..11], out=RAM0);
+    RAM4K(in=in, load=loadRAM1, address=address[0..11], out=RAM1);
+    RAM4K(in=in, load=loadRAM2, address=address[0..11], out=RAM2);
+    RAM4K(in=in, load=loadRAM3, address=address[0..11], out=RAM3);
+    Mux4Way16(a=RAM0, b=RAM1, c=RAM2, d=RAM3, sel=address[12..13], out=out);
+}
+
+CHIP PC {
+    IN in[16],load,inc,reset;
+    OUT out[16];
+
+    PARTS:
+    Inc16(in=loop, out=PlusOne);
+    Mux16(a=loop, b=PlusOne, sel=inc, out=IncPC);
+    Mux16(a=IncPC, b=in, sel=load, out=LoadPC);
+    Mux16(a=LoadPC, b=false, sel=reset, out=ResetPC);
+    Register(in=ResetPC, load=true, out=out, out=loop);
+}
+
+CHIP CPU {
+
+    IN  inM[16],         
+        instruction[16], 
+        reset;          
+
+    OUT outM[16],        
+        writeM,          
+        addressM[15],    
+        pc[15];          
+
+    PARTS:
+    Mux16(a=instruction, b=ALUOutput, sel=instruction[15], out=InputForA);
+    Mux(a=true, b=instruction[5], sel=instruction[15], out=loadA);
+    ARegister(in=InputForA, load=loadA, out=RegisterA, out[0..14]=addressM);
+    Mux(a=false, b=instruction[4], sel=instruction[15], out=loadD);
+    DRegister(in=ALUOutput, load=loadD, out=RegisterD);
+    Mux(a=false, b=instruction[3], sel=instruction[15], out=writeM);
+    Mux16(a=RegisterA, b=inM, sel=instruction[12], out=SelectAorM);
+    ALU(x=RegisterD, y=SelectAorM, 
+    zx=instruction[11], nx=instruction[10], zy=instruction[9], 
+    ny=instruction[8], f=instruction[7], no=instruction[6], 
+    out=ALUOutput, out=outM, zr=Zero, ng=Negative);
+    Or(a=Zero, b=Negative, out=NotPositive);
+    Not(in=NotPositive, out=Positive);
+    And(a=instruction[0], b=Positive, out=JCode1);
+    And(a=instruction[1], b=Zero, out=JCode2);
+    And(a=instruction[2], b=Negative, out=JCode3);
+    Or8Way(in[0]=JCode1, in[1]=JCode2, in[2]=JCode3, in[3..7]=false, out=JMPCode);
+    Mux(a=false, b=JMPCode, sel=instruction[15], out=loadPC);
+    PC(in=RegisterA, load=loadPC, inc=true, reset=reset, out[0..14]=pc);
+}
+
+CHIP Memory {
+    IN in[16], load, address[15];
+    OUT out[16];
+
+    PARTS:
+    DMux(in=load, sel=address[14], a=loadR, b=loadS);
+    RAM16K(in=in, load=loadR, address=address[0..13], out=ROut);
+    Screen(in=in, load=loadS, address=address[0..12], out=SOut);
+    Keyboard(out=KOut);
+    Mux4Way16(a=ROut, b=ROut, c=SOut, d=KOut, sel=address[13..14], out=out);
+}
+
+CHIP Computer {
+
+    IN reset;
+
+    PARTS:
+    ROM32K(address=pc, out=instruction);
+    CPU(inM=mData, instruction=instruction, reset=reset, outM=outM, writeM=writeM, addressM=addressM, pc=pc);
+    Memory(in=outM, load=writeM, address=addressM, out=mData);
+}
+
+
+
+@R2
+M=0
+
+(LOOP)
+// if R1 == 0 goto END
+@R1
+D=M
+@END
+D;JEQ
+
+// R2 = R2 + R0
+@R0
+D=M
+@R2
+M=D+M
+
+// R1 = R1 - 1
+@R1
+M=M-1
+
+// Goto LOOP
+@LOOP
+0;JMP
+
+// Program Ends.
+(END)
+@END
+0;JMP
